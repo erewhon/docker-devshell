@@ -15,9 +15,15 @@
 #       -v ~/.zsh_history:/u/erewhon/.zsh_history \
 #       -v ~/.ssh:/u/erewhon/.ssh \
 
+mkdir -p $HOME/.devshell
+
 exec docker run \
+       --user $( id -u ):$( id -g ) \
        --detach-keys="ctrl-@" \
        --pid host \
+       --hostname $( hostname -s ) \
+       -v $HOME/.ssh:/u/self/.ssh:ro \
+       -v $HOME/.devshell:/u/self \
        -it \
        --rm \
        devshell

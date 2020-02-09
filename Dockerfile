@@ -3,137 +3,90 @@
 #
 # docker build -t devshell .
 # docker run -it --rm devshell
-#
-
-FROM docker.io/centos:centos7
-
-#
-# todo:
-# - modern Ruby environment so I can install canonical Lolcat :)
-# - modern Python environment?
-# - newer node!
-# - pass in user ID from outside; wrapper script to start it
-# - java (not openjdk)
-# - ack
-# - gravitational teleport
-# - CA?  Boulder?
+#   map in .ssh, .devshell
 #
 
 #
-# Install a few of my favorite things and prepare the environment.
+# Tools:
+# - [X] mysql tools
+# - [ ] ansible
+# - [ ] jq
+# - [ ] fx
+# - [ ] httpie
+# - [ ] exa
+# - [ ] rg
+# - [X] git
+# - [X] zsh
+# - [X] mosh
+# - [X] nc
+# - [ ] pandoc
+# - [ ] rlwrap
+# - [X] tmux
+# - [ ] usql
+#
+# Languages:
+# - Java 8
+# - Java 11
+# - Java <most recent>
+# - Go
+# - Python
 #
 
 #
-# Remove manpage suppression from yum.conf, update, and install EPEL.
-#   Then install a number of packages I like using.
+# below version is 8.1.1911 as of 2020/02/09
 #
-RUN sed -i '/tsflags=nodocs/d' /etc/yum.conf && \
-    yum update -y && \
-    yum install -y epel-release && \
-    yum install -y man
-RUN yum install -y \
-        ack \
-        autossh \
-        bind-utils \
-        docker-client \
-        emacs \
-        expect \
-        git \
-        git-p4 \
-        git-svn \
-        golang \
-        htop \
-        jq \
-        less-458-9.el7.x86_64 \
-        mc \
-        mosh \
-        nc \
-        ncurses-devel \
-        net-tools \
-        nodejs \
-        npm \
-        python-pip \
-        rlwrap \
-        the_silver_searcher \
-        tmux \
-        wget \
-        which \
-        yum-plugin-copr
-#
-# Build zsh since EPEL version is tool old...
-#
-# Weirdness with "expect" and "unbuffer" is because
-#   configure script doesn't like being run without
-#   a tty, so we fake it!
-#
-RUN cd /usr/local/src && \
-    curl -L http://sourceforge.net/projects/zsh/files/zsh/5.4.2/zsh-5.4.2.tar.xz/download -o zsh-5.4.2.tar.xz && \
-    tar xvJf zsh-5.4.2.tar.xz && \
-    cd zsh-5.4.2 && \
-    unbuffer ./configure && \
-    make && \
-    make install
-RUN echo '/bin/zsh' >> /etc/shells && \
-    ln -sv /usr/local/bin/zsh /bin/zsh
+FROM docker.io/centos@sha256:fe8d824220415eed5477b63addf40fb06c3b049404242b31982106ac204f6700
 
 #
-# Python things
+# Update yum, turn on EPEL
 #
-RUN pip install httpie && \
-    pip install httpie-jwt-auth && \
-    pip install pygments
-#   pip install glances
+RUN yum update -y -q && \
+    yum install -y -q epel-release && \
+    yum update -y -q
 
 #
-# Node things
+# Install all the toolz!
 #
-RUN npm install -g yarn && \
-    npm install -g cowsay && \
-    npm install -g lolcatjs && \
-    npm install -g vtop && \
-    npm install -g slackadaisical
-#
-# Bling
-#
-RUN yum copr -y enable konimex/neofetch && \
-    yum install -y neofetch
+RUN yum install -y -q \
+    ack \
+    emacs \
+    git \
+    git-svn \
+    man \
+    mc \
+    mosh \
+    mysql \
+    nc \
+    tmux \
+    wget \
+    which \
+    zsh
 
-RUN mv /etc/localtime /etc/localtime.bak && \
-    ln -s /usr/share/zoneinfo/America/Chicago /etc/localtime
+# temp: need to figure out better way of doing this!
+ARG USER_ID
+RUN useradd -u ${USER_ID} self
 
-#
-# Set up an account.  We don't care about uid / gid as we'll
-#   fix it in start.sh
-#
-RUN groupdel games && \
-    mkdir -p /u && \
-    useradd -d /u/erewhon -p password -m -s /usr/bin/zsh erewhon
-    
-#    useradd -d /u/erewhon --uid 501 -p password -m -s /usr/bin/zsh erewhon
+ENV HOME /u/self
 
-#
-# Install some things as embedded user
-#
-RUN su -c 'wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true' erewhon
-RUN su -c 'git clone https://github.com/bhilburn/powerlevel9k.git ~/.oh-my-zsh/custom/themes/powerlevel9k || true' erewhon
-COPY scratch/dotfiles /u/erewhon/.dotfiles
+WORKDIR /u/self
+
 
 #
-# Fixup dotfiles
+# Install the following outside of EPEL because they tend to be updated
+#   more frequently
 #
-RUN su -c 'cd /u/erewhon; ./.dotfiles/mklinks' erewhon
 
-# Ideally we should just clone inside container, but for now,
-#   we clone outside container and copy into it...
-# RUN su -c 'git clone git@github.com:erewhon/dotfiles.git ~/.dotfiles' erewhon
-#   or.... I move to using homeshick
+# Go and dependent tools
 
-# ADD scripts/start.sh .
+# Node and dependent tools
 
-USER erewhon
-WORKDIR /u/erewhon
-ENV TERM xterm-256color
+# Python and dependent tools
 
-# CMD [ "/start.sh" ]
+# Rust and dependent tools
+
+# Gratuitous bling
+
+
+# Done
 
 CMD [ "/usr/bin/zsh", "--login" ]
