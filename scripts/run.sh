@@ -17,13 +17,20 @@
 
 mkdir -p $HOME/.devshell
 
+OTHER_ARGS="--pid host --user $( id -u ):$( id -g )"
+
 exec docker run \
-       --user $( id -u ):$( id -g ) \
+       $OTHER_ARGS \
        --detach-keys="ctrl-@" \
-       --pid host \
        --hostname $( hostname -s ) \
        -v $HOME/.ssh:/u/self/.ssh:ro \
        -v $HOME/.devshell:/u/self \
+       -p 8000:8000 \
+       -p 8001:8001 \
+       -p 8002:8002 \
+       -p 8003:8003 \
+       -p 8004:8004 \
+       -p 8888:8888 \
        -it \
        --rm \
        devshell

@@ -1,9 +1,13 @@
 #!/bin/bash
 
-mkdir -p scratch
-git clone git@gitlab.com:erewhon/dotfiles.git scratch/dotfiles
+# mkdir -p scratch
+# git clone git@gitlab.com:erewhon/dotfiles.git scratch/dotfiles
+
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
 
 docker build \
-  --build-arg USER_ID=$(id -u) \
-  -t devshell \
-  .
+       --build-arg USER_ID=${USER_ID} \
+       --build-arg GROUP_ID=${GROUP_ID} \
+       -t devshell \
+       .
