@@ -83,7 +83,8 @@ RUN export GOPATH=/usr/local/opt && \
     go get github.com/fullstorydev/grpcurl && \
     go install github.com/fullstorydev/grpcurl/cmd/grpcurl && \
     go get -u github.com/xo/usql && \
-    go get -u github.com/golang/protobuf/protoc-gen-go
+    go get -u github.com/golang/protobuf/protoc-gen-go && \
+    go get -u github.com/davecheney/httpstat
 
 #
 # bling
