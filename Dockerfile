@@ -20,9 +20,10 @@
 #
 
 #
-# below version is 8.1.1911 as of 2020/02/09
+# below version is AMD64 v8.3.2011 as of 2021/03/12
+#                  ARM is 7723d6b5d15b1c64d0a82ee6298c66cf8c27179e1c8a458e719041ffd08cd091
 #
-FROM docker.io/centos@sha256:fe8d824220415eed5477b63addf40fb06c3b049404242b31982106ac204f6700
+FROM docker.io/centos@sha256:dbbacecc49b088458781c16f3775f2a2ec7521079034a7ba499c8b0bb7f86875
 
 #
 # Update yum, turn on EPEL

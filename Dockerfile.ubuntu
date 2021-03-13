@@ -1,0 +1,35 @@
+#
+# Generic development container
+#
+#     docker build -t devshell .
+#     docker run -it --rm devshell
+#
+# AMD64: b10694fc29f6c511a7e8b7c1a7e3330c91c6c7addf2cc3b9627413c4a19d261f
+# ARM32: 669f7bb60badbe402bf78615e196f2b861adeab20dd551cd48c3b7f1af319fd9
+# ARM64: cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
+#
+FROM docker.io/ubuntu@sha256:cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
+
+#
+# Update apt
+#
+RUN apt update; \
+    apt upgrade -y
+RUN apt install snapd emacs zsh ripgrep rlwrap glances htop tmux jq mosh telnet zsh-autosuggestions fortune-mod ctop neofetch golang fzf httpie fd-find
+RUN apt install bat exa
+RUN snap install node --classic --channel=15
+
+#
+# Install Corretto
+#
+wget -O- https://apt.corretto.aws/corretto.key | sudo apt-key add - 
+RUN add-apt-repository 'deb https://apt.corretto.aws stable main'
+RUN apt-get update
+RUN apt-get install -y java-1.8.0-amazon-corretto-jdk \
+                       java-11-amazon-corretto-jdk \
+                       java-15-amazon-corretto-jdk
+# sudo apt install exa
+# sudo apt install curl git net-tools   # For some reason net-tools is not on Ubuntu
+# sudo apt install firefox              # For desktop machines
+# sudo apt install -y gpac   # MP4Box
+# sudo snap install procs
