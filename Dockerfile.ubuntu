@@ -8,28 +8,129 @@
 # ARM32: 669f7bb60badbe402bf78615e196f2b861adeab20dd551cd48c3b7f1af319fd9
 # ARM64: cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
 #
-FROM docker.io/ubuntu@sha256:cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
+FROM docker.io/ubuntu@sha256:b10694fc29f6c511a7e8b7c1a7e3330c91c6c7addf2cc3b9627413c4a19d261f
+ENV DEBIAN_FRONTEND=noninteractive
+
+#
+# Locales
+#
+RUN apt-get update && apt-get install -y locales
+ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" LANGUAGE="en_US.UTF-8"
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+  locale-gen --purge $LANG && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=$LANG LC_ALL=$LC_ALL LANGUAGE=$LANGUAGE
 
 #
 # Update apt
 #
-RUN apt update; \
-    apt upgrade -y
-RUN apt install snapd emacs zsh ripgrep rlwrap glances htop tmux jq mosh telnet zsh-autosuggestions fortune-mod ctop neofetch golang fzf httpie fd-find
-RUN apt install bat exa
-RUN snap install node --classic --channel=15
+RUN apt upgrade -y
+RUN apt install -y -qq software-properties-common \
+                       build-essential \
+                       tzdata \
+                       psmisc \
+                       rsync \
+                       vim \
+                       mysql-client
+RUN apt install -y -qq snapd emacs zsh ripgrep rlwrap htop tmux jq mosh telnet \
+                       zsh-autosuggestions fortune-mod ctop neofetch \
+                       httpie fd-find bat exa curl wget git net-tools netcat socat
 
-#
-# Install Corretto
-#
-wget -O- https://apt.corretto.aws/corretto.key | sudo apt-key add - 
-RUN add-apt-repository 'deb https://apt.corretto.aws stable main'
-RUN apt-get update
+# The following were moved to other places:
+# - fzf (cargo install)
+
+# todo :
+# xz glances
+# python
+# go1.16.2.linux-amd64.tar.gz
+
+#### Updated languages
+##
+## Node
+##
+RUN curl -fsSL https://deb.nodesource.com/setup_15.x | bash - ; \
+    apt-get install -y nodejs
+RUN npm install -g yarn cowsay lolcatjs fx quicktype
+
+##
+## Golang
+##
+RUN curl -fsSL https://golang.org/dl/go1.16.2.linux-amd64.tar.gz | tar -C /usr/local -xzf - ; \
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile ; \
+    echo 'export PATH=$PATH:/usr/local/opt/bin' >> /etc/profile
+
+RUN export GOPATH=/usr/local/opt && \
+    export PATH=/usr/local/go/bin:$PATH && \
+    go get github.com/josephburnett/jd && \
+    go get -u github.com/xo/usql && \
+    go get -u github.com/davecheney/httpstat
+
+##
+## Corretto / Java
+##
+RUN curl -fsSL https://apt.corretto.aws/corretto.key | apt-key add -  ; \
+    add-apt-repository 'deb https://apt.corretto.aws stable main' < /dev/null ; \
+    apt-get update
 RUN apt-get install -y java-1.8.0-amazon-corretto-jdk \
                        java-11-amazon-corretto-jdk \
                        java-15-amazon-corretto-jdk
-# sudo apt install exa
-# sudo apt install curl git net-tools   # For some reason net-tools is not on Ubuntu
+
+##
+## Rust toolchain and up to date versions of certain Rust tools
+##
+RUN mkdir -p /opt/rustup /opt/cargo ; \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | env RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo sh -s -- -y ; \
+    echo 'source /opt/cargo/env' >> /etc/profile ; \
+    echo 'export RUSTUP_HOME=/opt/rustup' >> /etc/profile
+
+RUN . /opt/cargo/env ; \
+    export RUSTUP_HOME=/opt/rustup ; \
+    cargo install --root /usr/local procs fzf zoxide fd-find ; \
+    cargo install --root /usr/local --features=ssl websocat
+
+#
+# Set up timezone
+#
+ENV TZ 'America/New_York'
+RUN echo $TZ > /etc/timezone && \
+    rm /etc/localtime && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+##################################################
+
+# temp: need to figure out better way of doing this!
+ARG USER_ID
+ARG GROUP_ID
+RUN groupadd -g ${GROUP_ID} erewhon || true
+RUN useradd -u ${USER_ID} -g ${GROUP_ID} erewhon
+RUN chown ${USER_ID}:${GROUP_ID} ${HOME}
+
+ENV HOME /u/erewhon
+ENV TERM xterm-256color
+
+WORKDIR /u/erewhon
+
+##################################################
+#
+# Gratuitous bling
+#
+
+##################################################
+#
+# Done
+#
+CMD [ "/usr/bin/zsh", "--login" ]
+
+
+#
+# Misc items to consider:
+#
+#     go get github.com/yudai/gotty          # Currently broken. Need to find useful fork!
+#
+#     go get github.com/fullstorydev/grpcurl && \
+#     go install github.com/fullstorydev/grpcurl/cmd/grpcurl && \
+#     go get -u github.com/golang/protobuf/protoc-gen-go && \
 # sudo apt install firefox              # For desktop machines
 # sudo apt install -y gpac   # MP4Box
-# sudo snap install procs

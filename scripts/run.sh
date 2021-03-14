@@ -15,7 +15,7 @@
 #       -v ~/.zsh_history:/u/erewhon/.zsh_history \
 #       -v ~/.ssh:/u/erewhon/.ssh \
 
-mkdir -p $HOME/.devshell
+mkdir -p $HOME/.ds
 
 OTHER_ARGS="--pid host --user $( id -u ):$( id -g )"
 
@@ -23,16 +23,8 @@ exec docker run \
        $OTHER_ARGS \
        --detach-keys="ctrl-@" \
        --hostname $( hostname -s ) \
-       -v $HOME/.ssh:/u/self/.ssh:ro \
-       -v $HOME/.devshell:/u/self \
-       -p 8000:8000 \
-       -p 8001:8001 \
-       -p 8002:8002 \
-       -p 8003:8003 \
-       -p 8004:8004 \
-       -p 8888:8888 \
+       -v $HOME/.ssh:/u/erewhon/.ssh:ro \
+       -v $HOME/.ds:/u/erewhon \
        -it \
        --rm \
        devshell
-
-# docker run -it --rm docker.io/centos:centos7 /bin/bash
