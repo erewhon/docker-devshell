@@ -23,35 +23,53 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     update-locale LANG=$LANG LC_ALL=$LC_ALL LANGUAGE=$LANGUAGE
 
 #
-# Update apt
+# Update apt, optimize for interactive use, and install various utilities
 #
-RUN apt upgrade -y
-RUN apt install -y -qq software-properties-common \
+RUN apt upgrade -y ; \
+    yes | /usr/local/sbin/unminimize; \
+    apt install -y -qq man-db \
+                       software-properties-common \
                        build-essential \
                        tzdata \
                        psmisc \
                        rsync \
                        vim \
-                       mysql-client
-RUN apt install -y -qq snapd emacs zsh ripgrep rlwrap htop tmux jq mosh telnet \
-                       zsh-autosuggestions fortune-mod ctop neofetch \
-                       httpie fd-find bat exa curl wget git net-tools netcat socat
+                       mysql-client \
+                       snapd emacs zsh ripgrep rlwrap htop tmux jq mosh telnet \
+                       zsh-autosuggestions fortune-mod neofetch \
+                       httpie fd-find bat exa curl wget git net-tools netcat socat wget \
+                       ansible gnupg lsb-release ca-certificates fortunes
 
-# The following were moved to other places:
-# - fzf (cargo install)
+#
+# Newer versions
+#
+RUN wget https://github.com/tstack/lnav/releases/download/v0.9.0/lnav_0.9.0_amd64.deb ; \
+    apt install ./lnav_0.9.0_amd64.deb
+RUN wget https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb; \
+    apt install ./dive_0.9.2_linux_amd64.deb
+RUN wget https://github.com/bcicen/ctop/releases/download/v0.7.5/ctop-0.7.5-linux-amd64 ; \
+    mv -fv ctop-0.7.5-linux-amd64 /usr/local/bin/ctop ; \
+    chmod 755 /usr/local/bin/ctop
+RUN rm -f ./dive_0.9.2_linux_amd64.deb ./lnav_0.9.0_amd64.deb
 
-# todo :
-# xz glances
-# python
-# go1.16.2.linux-amd64.tar.gz
+#
+# Latest Docker
+#
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg ; \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+         $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN apt update; apt install -y docker-ce docker-ce-cli containerd.io
 
 #### Updated languages
 ##
-## Node
+## Corretto / Java
 ##
-RUN curl -fsSL https://deb.nodesource.com/setup_15.x | bash - ; \
-    apt-get install -y nodejs
-RUN npm install -g yarn cowsay lolcatjs fx quicktype
+RUN curl -fsSL https://apt.corretto.aws/corretto.key | apt-key add -  ; \
+    add-apt-repository 'deb https://apt.corretto.aws stable main' < /dev/null ; \
+    apt-get update
+RUN apt-get install -y java-1.8.0-amazon-corretto-jdk \
+                       java-11-amazon-corretto-jdk \
+                       java-15-amazon-corretto-jdk
 
 ##
 ## Golang
@@ -67,16 +85,6 @@ RUN export GOPATH=/usr/local/opt && \
     go get -u github.com/davecheney/httpstat
 
 ##
-## Corretto / Java
-##
-RUN curl -fsSL https://apt.corretto.aws/corretto.key | apt-key add -  ; \
-    add-apt-repository 'deb https://apt.corretto.aws stable main' < /dev/null ; \
-    apt-get update
-RUN apt-get install -y java-1.8.0-amazon-corretto-jdk \
-                       java-11-amazon-corretto-jdk \
-                       java-15-amazon-corretto-jdk
-
-##
 ## Rust toolchain and up to date versions of certain Rust tools
 ##
 RUN mkdir -p /opt/rustup /opt/cargo ; \
@@ -89,6 +97,14 @@ RUN . /opt/cargo/env ; \
     cargo install --root /usr/local procs fzf zoxide fd-find ; \
     cargo install --root /usr/local --features=ssl websocat
 
+##
+## Node
+##
+RUN curl -fsSL https://deb.nodesource.com/setup_15.x | bash - ; \
+    apt-get install -y nodejs
+RUN npm install -g yarn cowsay lolcatjs fx quicktype emoj parrotsay
+
+###########################
 #
 # Set up timezone
 #
@@ -99,7 +115,6 @@ RUN echo $TZ > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
 
 ##################################################
-
 # temp: need to figure out better way of doing this!
 ARG USER_ID
 ARG GROUP_ID
@@ -123,7 +138,6 @@ WORKDIR /u/erewhon
 #
 CMD [ "/usr/bin/zsh", "--login" ]
 
-
 #
 # Misc items to consider:
 #
@@ -134,3 +148,11 @@ CMD [ "/usr/bin/zsh", "--login" ]
 #     go get -u github.com/golang/protobuf/protoc-gen-go && \
 # sudo apt install firefox              # For desktop machines
 # sudo apt install -y gpac   # MP4Box
+#
+# The following were moved to other places:
+# - fzf (cargo install)
+
+# todo :
+# xz glances
+# go1.16.2.linux-amd64.tar.gz
+

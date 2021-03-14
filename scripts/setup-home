@@ -1,0 +1,71 @@
+#!/bin/bash
+# -*- Mode: shell-script -*-
+#
+# Sets up a home directory
+#
+
+TARGET=$1
+DRYRUN="env "
+HEADER="************************************************************************"
+
+if [[ ! -d $TARGET ]]; then
+    echo "Target directory $TARGET does not exist.  Please try again."
+    exit
+fi
+
+echo "Setting up target directory $TARGET"
+# echo -n "Starting in "
+# for s in 5 4 3 2 1; do
+#     echo -n "$s "
+#     sleep 1
+# done
+# echo ""
+
+cd "$TARGET"
+
+# Oh My Zsh
+echo "$HEADER"
+DEP="$TARGET/.oh-my-zsh"
+if [[ ! -d "$DEP" ]]; then
+    echo -e "Setting up Oh My Zsh in $DEP"
+    git clone https://github.com/robbyrussell/oh-my-zsh.git "$DEP"
+    # $DRYRUN ZSH="$DEP" CHSH="no" RUNZSH="no" KEEP_ZSHRC="yes" sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+else
+    echo "Skipping Oh My Zsh"
+fi
+
+ZSH_CUSTOM="$TARGET/.oh-my-zsh/custom"
+mkdir -p "$ZSH_CUSTOM"
+
+# Powershell 10k
+echo "$HEADER"
+DEP="$ZSH_CUSTOM/themese/powerlevel10k"
+if [[ ! -d "$DEP" ]]; then
+    echo "Setting up Powerlevel10k in $DEP"
+    $DRYRUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+else
+    echo "Skipping Powerlevel10k"
+fi
+
+# Check out zsh plugin:
+echo "$HEADER"
+DEP="$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+if [[ ! -d "$DEP" ]]; then
+    echo "Setting up ZSH autosuggestions to $DEP"
+    $DRYRUN git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+else
+    echo "Skipping ZSH autosuggestions"
+fi
+
+# Check out dotfiles
+echo "$HEADER"
+DEP="$TARGET/.dotfiles"
+if [[ ! -d "$DEP" ]]; then
+    echo "Cloning dotfiles to $DEP"
+    $DRYRUN git clone git@github.com:erewhon/dotfiles.git "$DEP"
+else
+    echo "Skipping dotfiles"
+fi
+
+echo "$HEADER"
+echo "Remember: if dotfiles are updated, run ~/.dotfiles/scripts/bootstrap.sh"
