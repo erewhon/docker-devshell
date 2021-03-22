@@ -8,7 +8,9 @@
 # ARM32: 669f7bb60badbe402bf78615e196f2b861adeab20dd551cd48c3b7f1af319fd9
 # ARM64: cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
 #
-FROM docker.io/ubuntu@sha256:b10694fc29f6c511a7e8b7c1a7e3330c91c6c7addf2cc3b9627413c4a19d261f
+# FROM docker.io/ubuntu@sha256:b10694fc29f6c511a7e8b7c1a7e3330c91c6c7addf2cc3b9627413c4a19d261f
+
+FROM devshell-interactive
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
@@ -27,31 +29,57 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
 #
 RUN apt upgrade -y ; \
     yes | /usr/local/sbin/unminimize; \
-    apt install -y -qq man-db \
-                       software-properties-common \
+    apt install -y -qq \
+                       ansible \
+                       bat \
                        build-essential \
-                       tzdata \
-                       psmisc \
-                       rsync \
-                       vim \
+                       ca-certificates \
+                       curl \
+                       emacs \
+                       exa \
+                       fd-find \
+                       fortune-mod \
+                       fortunes \
+                       git \
+                       gnupg \
+                       htop \
+                       httpie \
+                       jq \
+                       lsb-release \
+                       man-db \
+                       mosh \
                        mysql-client \
-                       snapd emacs zsh ripgrep rlwrap htop tmux jq mosh telnet \
-                       zsh-autosuggestions fortune-mod neofetch \
-                       httpie fd-find bat exa curl wget git net-tools netcat socat wget \
-                       ansible gnupg lsb-release ca-certificates fortunes
+                       neofetch \
+                       net-tools \
+                       netcat \
+                       psmisc \
+                       ripgrep \
+                       rlwrap \
+                       rsync \
+                       snapd \
+                       socat \
+                       software-properties-common \
+                       telnet \
+                       tmux \
+                       tzdata \
+                       vim \
+                       wget \
+                       wget \
+                       zsh \
+                       zsh-autosuggestions
 
 #
-# Newer versions
+# Newer versions than in apt repo.
 #
-RUN wget https://github.com/tstack/lnav/releases/download/v0.9.0/lnav_0.9.0_amd64.deb ; \
-    apt install ./lnav_0.9.0_amd64.deb
-RUN wget https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb; \
-    apt install ./dive_0.9.2_linux_amd64.deb
 RUN wget https://github.com/bcicen/ctop/releases/download/v0.7.5/ctop-0.7.5-linux-amd64 ; \
     mv -fv ctop-0.7.5-linux-amd64 /usr/local/bin/ctop ; \
     chmod 755 /usr/local/bin/ctop
+RUN wget https://github.com/wagoodman/dive/releases/download/v0.9.2/dive_0.9.2_linux_amd64.deb; \
+    apt install ./dive_0.9.2_linux_amd64.deb
 RUN wget https://github.com/junegunn/fzf/releases/download/0.26.0/fzf-0.26.0-linux_amd64.tar.gz ; \
     tar -C /usr/local/bin -xzf fzf-0.26.0-linux_amd64.tar.gz
+RUN wget https://github.com/tstack/lnav/releases/download/v0.9.0/lnav_0.9.0_amd64.deb ; \
+    apt install ./lnav_0.9.0_amd64.deb
 RUN rm -f ./dive_0.9.2_linux_amd64.deb ./lnav_0.9.0_amd64.deb ./fzf-0.26.0-linux_amd64.tar.gz
 
 #

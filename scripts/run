@@ -1,0 +1,19 @@
+#!/bin/bash
+# -*- Mode: shell-script -*-
+#
+# Simple interactive run script
+
+#        
+
+IMAGE=${1:-devshell-base}
+
+echo "Starting image $IMAGE"
+
+exec docker run \
+     --detach-keys="ctrl-@" \
+     --hostname $( hostname -s ) \
+     -v $HOME/.ssh:/root/.ssh:ro \
+     -it \
+     --rm \
+     ${IMAGE}
+

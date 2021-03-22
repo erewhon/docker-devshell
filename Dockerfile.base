@@ -1,0 +1,32 @@
+#
+# Base image
+#
+# To build:
+#
+#    docker 
+#
+# AMD64: b10694fc29f6c511a7e8b7c1a7e3330c91c6c7addf2cc3b9627413c4a19d261f
+# ARM32: 669f7bb60badbe402bf78615e196f2b861adeab20dd551cd48c3b7f1af319fd9
+# ARM64: cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
+#
+
+ARG BASE_HASH=sha256:cc743dfeed7486e6dc741aa3c694ba3d2e0c80942c8a65dcd23d5b792dba759c
+FROM docker.io/ubuntu@$BASE_HASH
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+#
+# Locales
+#
+RUN apt-get update && apt-get install -y locales
+ENV LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8" LANGUAGE="en_US.UTF-8"
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen --purge $LANG && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=$LANG LC_ALL=$LC_ALL LANGUAGE=$LANGUAGE
+
+#
+# Update apt, optimize for interactive use, and install various utilities
+#
+RUN apt upgrade -y

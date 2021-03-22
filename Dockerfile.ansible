@@ -1,0 +1,8 @@
+#
+# Build an image with tooling related to running Ansible
+#
+
+FROM devshell-interactive
+
+RUN apt-add-repository --yes --update ppa:ansible/ansible ; \
+    apt install ansible ansible-lint ansible-doc -y

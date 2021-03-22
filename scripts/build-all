@@ -1,0 +1,6 @@
+#!/bin/bash
+# -*- Mode: shell-script -*-
+
+./scripts/build-base
+./scripts/build-ansible
+./scripts/build-ubuntu

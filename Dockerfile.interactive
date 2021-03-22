@@ -1,0 +1,26 @@
+#
+# Docker image with some tweaks for interactive usage.
+#
+FROM devshell-base
+
+#
+# Optimize for interactive use, and install some utilities
+#
+RUN yes | /usr/local/sbin/unminimize; \
+    apt install -y -qq \
+                       ansible \
+                       build-essential \
+                       ca-certificates \
+                       expect \
+                       less \
+                       lsb-release \
+                       man-db \
+                       psmisc \
+                       python-pexpect-doc \
+                       python3-pexpect \
+                       rsync \
+                       software-properties-common \
+                       tzdata \
+                       vim
+
+# emacs rlwrap htop tmux jq mosh git net-tools netcat socat wget

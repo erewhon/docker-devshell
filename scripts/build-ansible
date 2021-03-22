@@ -1,0 +1,7 @@
+#!/bin/bash
+# -*- Mode: shell-script -*-
+
+docker build \
+       -f Dockerfile.ansible \
+       -t devshell-ansible   \
+       .
